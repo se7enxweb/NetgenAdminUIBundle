@@ -1,3 +1,94 @@
+<script type="text/javascript" src="{{ asset('bundles/netgenadminui/bower/jquery/dist/jquery.js') }}"></script>
+
+<!-- Initialize legacy globals that inline page code uses -->
+<script type="text/javascript">
+var YUI3_config = {
+    "base": "/extension/ezjscore/design/standard/lib/yui/3.17.2/build/",
+    "combine": false,
+    "modules": {}
+};
+
+// Initialize legacy globals that inline page code uses
+window.menuArray = window.menuArray || [];
+window.YUILoader = {
+    modules: {},
+    onSuccess: null,
+    addModule: function(config) {
+        this.modules[config.name] = config;
+    },
+    require: function(modules) {
+        // Store the required modules
+    },
+    insert: function(options, type) {
+        // Execute onSuccess callback when modules are inserted
+        if (this.onSuccess && typeof this.onSuccess === 'function') {
+            setTimeout(this.onSuccess.bind(this), 10);
+        }
+    }
+};
+window.ContentStructureMenu = function(parentId, config) {
+    this.parentId = parentId;
+    this.config = config || {};
+    this.children = [];
+    this.isOpen = false;
+};
+window.ContentStructureMenu.prototype.init = function() {};
+window.ContentStructureMenu.prototype.addChild = function(id, name) {
+    this.children.push({ id: id, name: name });
+};
+window.ContentStructureMenu.prototype.expand = function() { this.isOpen = true; };
+window.ContentStructureMenu.prototype.collapse = function() { this.isOpen = false; };
+
+// Tree menu functions for content tree
+window.treeMenu = window.treeMenu || {};
+window.treeMenu.generateEntry = function(id, name, level, hasChildren) {
+    return '<div class="tree-entry" data-id="' + id + '" data-level="' + (level || 0) + '" data-has-children="' + (hasChildren ? 1 : 0) + '">' + (name || '') + '</div>';
+};
+window.treeMenu.insertEntry = function(html) {
+    if (document && document.body) {
+        var temp = document.createElement('div');
+        temp.innerHTML = html;
+        while (temp.firstChild) {
+            document.body.appendChild(temp.firstChild);
+        }
+    }
+};
+window.treeMenu.openNode = function(nodeId) {
+    var node = document.querySelector('[data-id="' + nodeId + '"]');
+    if (node) node.classList.add('open');
+};
+window.treeMenu.closeNode = function(nodeId) {
+    var node = document.querySelector('[data-id="' + nodeId + '"]');
+    if (node) node.classList.remove('open');
+};
+</script>
+<!-- Legacy ezjscore support for admin interface -->
+<!-- YUI 3.17.2 library -->
+<script type="text/javascript" src="/extension/ezjscore/design/standard/lib/yui/3.17.2/build/yui/yui.js"></script>
+
+<!-- YUI 2.8.2 Library for legacy admin code (local) - load in correct dependency order -->
+<script type="text/javascript" src="/extension/ezjscore/design/standard/lib/yui/2.8.2/build/yahoo/yahoo-min.js"></script>
+<script type="text/javascript" src="/extension/ezjscore/design/standard/lib/yui/2.8.2/build/event/event-min.js"></script>
+<script type="text/javascript" src="/extension/ezjscore/design/standard/lib/yui/2.8.2/build/dom/dom-min.js"></script>
+<script type="text/javascript" src="/extension/ezjscore/design/standard/lib/yui/2.8.2/build/connection/connection-min.js"></script>
+<script type="text/javascript" src="/extension/ezjscore/design/standard/lib/yui/2.8.2/build/cookie/cookie-min.js"></script>
+<script type="text/javascript" src="/extension/ezjscore/design/standard/lib/yui/2.8.2/build/datasource/datasource-min.js"></script>
+<script type="text/javascript" src="/extension/ezjscore/design/standard/lib/yui/2.8.2/build/element/element-min.js"></script>
+<script type="text/javascript" src="/extension/ezjscore/design/standard/lib/yui/2.8.2/build/container/container-min.js"></script>
+<script type="text/javascript" src="/extension/ezjscore/design/standard/lib/yui/2.8.2/build/button/button-min.js"></script>
+<script type="text/javascript" src="/extension/ezjscore/design/standard/lib/yui/2.8.2/build/paginator/paginator-min.js"></script>
+<script type="text/javascript" src="/extension/ezjscore/design/standard/lib/yui/2.8.2/build/button/button-min.js"></script>
+<script type="text/javascript" src="/extension/ezjscore/design/standard/lib/yui/2.8.2/build/datatable/datatable-min.js"></script>
+
+<!-- YUI 3 modules for newer features -->
+<script type="text/javascript" src="/extension/ezjscore/design/standard/lib/yui/3.17.2/build/transition/transition.js"></script>
+<script type="text/javascript" src="/design/standard/javascript/lib/ezjslibimagepreloader.js"></script>
+<script type="text/javascript" src="/design/standard/javascript/lib/ezjslibdomsupport.js"></script>
+<script type="text/javascript" src="/design/standard/javascript/lib/ezjslibcookiesupport.js"></script>
+<script type="text/javascript" src="/design/admin/javascript/contentstructuremenu_dynamic.js"></script>
+<script type="text/javascript" src="/extension/ngadminui/design/ngadminui/javascript/ezajaxsubitems_datatable.js?v=20260202-create-icons222333"></script>
+<script type="text/javascript" src="/design/admin/javascript/ezcollapsiblemenu.js"></script>
+
 <script type="text/javascript" src="{{ asset('bundles/netgenadminui/js/resizable.js') }}"></script>
 <script type="text/javascript" src="{{ asset('bundles/netgenadminui/bower/bootstrap-sass/assets/javascripts/bootstrap.js') }}"></script>
 <script type="text/javascript" src="{{ asset('bundles/netgenadminui/bower/ace-builds/src-min-noconflict/ace.js') }}"></script>

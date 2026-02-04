@@ -1,5 +1,19 @@
 var sortableSubitems = function () {
 
+    // Debug logging toggle for menu system
+    var sevenxExpDebugJSMenuingSystemConsoleLogging = false;
+
+    // Console logging function that respects debug flag
+    var sevenxConsoleLog = function(message, data) {
+        if (sevenxExpDebugJSMenuingSystemConsoleLogging === true) {
+            if (data !== undefined) {
+                console.log(message, data);
+            } else {
+                console.log(message);
+            }
+        }
+    };
+
     var confObj;
     var labelsObj;
     var createGroups;
@@ -377,6 +391,80 @@ var sortableSubitems = function () {
                                                        menu: selectItemsBtnActions,
                                                        container:"action-controls"});
 
+        // Helper function to hide all menus
+        var hideAllMenus = function() {
+            var selectMenu = document.getElementById('select-items-menu-container');
+            var createMenu = document.getElementById('create-new-menu-container');
+            var moreMenu = document.getElementById('more-actions-menu-container');
+            if (selectMenu) selectMenu.style.display = 'none';
+            if (createMenu) createMenu.style.display = 'none';
+            if (moreMenu) moreMenu.style.display = 'none';
+        };
+
+        // Add click handlers directly to button element
+        var selectBtnEl = selectItemsBtn.get('element');
+        selectBtnEl.addEventListener('click', function(e) {
+            sevenxConsoleLog('[SELECT CLICK] Button clicked');
+            e.preventDefault();
+            e.stopPropagation();
+
+            // Hide all other menus first
+            var createMenu = document.getElementById('create-new-menu-container');
+            var moreMenu = document.getElementById('more-actions-menu-container');
+            if (createMenu) createMenu.style.display = 'none';
+            if (moreMenu) moreMenu.style.display = 'none';
+
+            // Show a menu by appending items to DOM
+            var menuContainer = document.getElementById('select-items-menu-container');
+            if (!menuContainer) {
+                menuContainer = document.createElement('div');
+                menuContainer.id = 'select-items-menu-container';
+                menuContainer.style.position = 'absolute';
+                menuContainer.style.zIndex = 9999;
+                menuContainer.style.backgroundColor = 'white';
+                menuContainer.style.border = '1px solid #ccc';
+                menuContainer.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+                document.body.appendChild(menuContainer);
+            }
+
+            // Toggle menu visibility
+            if (menuContainer.style.display === 'block') {
+                menuContainer.style.display = 'none';
+            } else {
+                // Clear and rebuild menu
+                menuContainer.innerHTML = '';
+                selectItemsBtnActions.forEach(function(item) {
+                    var btn = document.createElement('div');
+                    btn.style.padding = '8px 15px';
+                    btn.style.cursor = 'pointer';
+                    btn.style.borderBottom = '1px solid #eee';
+                    btn.innerHTML = item.text;
+                    btn.onclick = function(e) {
+                        e.stopPropagation();
+                        sevenxConsoleLog('[SELECT ITEM] Clicked:', item.text);
+                        // Call the appropriate handler based on the item
+                        if (item.id === 'ezopt-menu-toggle') {
+                            selectItemsBtnInvert(null, null, item);
+                        } else {
+                            selectItemsBtnAction(null, null, item);
+                        }
+                        menuContainer.style.display = 'none';
+                    };
+                    btn.onmouseover = function() { this.style.backgroundColor = '#f0f0f0'; };
+                    btn.onmouseout = function() { this.style.backgroundColor = 'transparent'; };
+                    menuContainer.appendChild(btn);
+                });
+
+                // Position menu below button
+                var rect = selectBtnEl.getBoundingClientRect();
+                if (rect) {
+                    menuContainer.style.display = 'block';
+                    menuContainer.style.left = rect.left + 'px';
+                    menuContainer.style.top = (rect.bottom + 5) + 'px';
+                }
+            }
+        });
+
         var createNewBtnAction = function( type, args ) {
             var event = args[0], item = args[1];
             $('form[name=children]').append($('<input type="hidden" name="ClassID" value="' + item.value + '" />')).append($('<input type="hidden" name="NewButton" />')).submit();
@@ -392,15 +480,97 @@ var sortableSubitems = function () {
         // Disable button if user has no available content classes to create objects of
         if (createGroups.length === 0) createNewBtn.set('disabled',true);
 
-        var createNewBtnMenu  = createNewBtn.getMenu();
-        createNewBtnMenu.cfg.setProperty("scrollincrement", 5);
-        createNewBtnMenu.subscribe("click", createNewBtnAction);
+        // Add click handlers directly to button element
+        var createBtnEl = createNewBtn.get('element');
+        createBtnEl.addEventListener('click', function(e) {
+            sevenxConsoleLog('[CREATE CLICK] Button clicked');
+            e.preventDefault();
+            e.stopPropagation();
 
-        var createNewBthGroupsLength = createGroups.length;
-        for (var i = 0, l = createNewBthGroupsLength; i < l; i++) {
-            var groupName = createGroups[i];
-            createNewBtnMenu.setItemGroupTitle(groupName, i);
-        }
+            // Hide all other menus first
+            var selectMenu = document.getElementById('select-items-menu-container');
+            var moreMenu = document.getElementById('more-actions-menu-container');
+            if (selectMenu) selectMenu.style.display = 'none';
+            if (moreMenu) moreMenu.style.display = 'none';
+
+            // Show a menu by appending items to DOM
+            var menuContainer = document.getElementById('create-new-menu-container');
+            if (!menuContainer) {
+                menuContainer = document.createElement('div');
+                menuContainer.id = 'create-new-menu-container';
+                menuContainer.style.position = 'absolute';
+                menuContainer.style.zIndex = 9999;
+                menuContainer.style.backgroundColor = 'white';
+                menuContainer.style.border = '1px solid #ccc';
+                menuContainer.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+                document.body.appendChild(menuContainer);
+            }
+
+            // Toggle menu visibility
+            if (menuContainer.style.display === 'block') {
+                menuContainer.style.display = 'none';
+            } else {
+                // Clear and rebuild menu
+                menuContainer.innerHTML = '';
+
+                // Flatten createOptions since it's an array of arrays grouped by class group
+                var allItems = [];
+                for (var i = 0; i < createOptions.length; i++) {
+                    if (Array.isArray(createOptions[i])) {
+                        for (var j = 0; j < createOptions[i].length; j++) {
+                            allItems.push(createOptions[i][j]);
+                        }
+                    }
+                }
+
+                allItems.forEach(function(item) {
+                    var btn = document.createElement('div');
+                    btn.style.padding = '8px 15px';
+                    btn.style.cursor = 'pointer';
+                    btn.style.borderBottom = '1px solid #eee';
+                    btn.style.display = 'flex';
+                    btn.style.alignItems = 'center';
+                    btn.style.gap = '10px';
+
+                    // Create icon element if icon exists
+                    if (item.icon) {
+                        var iconImg = document.createElement('img');
+                        iconImg.src = item.icon;
+                        iconImg.style.width = '16px';
+                        iconImg.style.height = '16px';
+                        btn.appendChild(iconImg);
+                    }
+
+                    // Create text element
+                    var textSpan = document.createElement('span');
+                    textSpan.textContent = item.text;
+                    btn.appendChild(textSpan);
+
+                    // Add title attribute for hover tooltip
+                    if (item.description) {
+                        btn.title = item.description;
+                    }
+
+                    btn.onclick = function(e) {
+                        e.stopPropagation();
+                        sevenxConsoleLog('[CREATE ITEM] Clicked:', item.text);
+                        createNewBtnAction(null, [null, item]);
+                        menuContainer.style.display = 'none';
+                    };
+                    btn.onmouseover = function() { this.style.backgroundColor = '#f0f0f0'; };
+                    btn.onmouseout = function() { this.style.backgroundColor = 'transparent'; };
+                    menuContainer.appendChild(btn);
+                });
+
+                // Position menu below button
+                var rect = createBtnEl.getBoundingClientRect();
+                if (rect) {
+                    menuContainer.style.display = 'block';
+                    menuContainer.style.left = rect.left + 'px';
+                    menuContainer.style.top = (rect.bottom + 5) + 'px';
+                }
+            }
+        });
 
 
         var moreActBtnAction = function( type, args, item ) {
@@ -430,16 +600,69 @@ var sortableSubitems = function () {
                                                    menu: noMoreActBtnActions,
                                                    container:"action-controls"});
 
-        //  enable 'more actions' when rows are checked
-        moreActBtn.getMenu().subscribe("beforeShow", function (){
-            if ($('form[name=children] input.ezsubitems_delete_checkbox:checked').length == 0) {
-                this.clearContent();
-                this.addItems(noMoreActBtnActions);
-                this.render();
+        // Add click handlers directly to button element
+        var moreBtnEl = moreActBtn.get('element');
+        moreBtnEl.addEventListener('click', function(e) {
+            sevenxConsoleLog('[MORE CLICK] Button clicked');
+            e.preventDefault();
+            e.stopPropagation();
+
+            // Hide all other menus first
+            var selectMenu = document.getElementById('select-items-menu-container');
+            var createMenu = document.getElementById('create-new-menu-container');
+            if (selectMenu) selectMenu.style.display = 'none';
+            if (createMenu) createMenu.style.display = 'none';
+
+            // Show a menu by appending items to DOM
+            var menuContainer = document.getElementById('more-actions-menu-container');
+            if (!menuContainer) {
+                menuContainer = document.createElement('div');
+                menuContainer.id = 'more-actions-menu-container';
+                menuContainer.style.position = 'absolute';
+                menuContainer.style.zIndex = 9999;
+                menuContainer.style.backgroundColor = 'white';
+                menuContainer.style.border = '1px solid #ccc';
+                menuContainer.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+                document.body.appendChild(menuContainer);
+            }
+
+            // Toggle menu visibility
+            if (menuContainer.style.display === 'block') {
+                menuContainer.style.display = 'none';
             } else {
-                this.clearContent();
-                this.addItems(moreActBtnActions);
-                this.render();
+                // Check if items are checked
+                var checkedItems = $('form[name=children] input.ezsubitems_delete_checkbox:checked');
+                var itemsToShow = checkedItems.length > 0 ? moreActBtnActions : noMoreActBtnActions;
+
+                // Clear and rebuild menu
+                menuContainer.innerHTML = '';
+                itemsToShow.forEach(function(item) {
+                    var btn = document.createElement('div');
+                    btn.style.padding = '8px 15px';
+                    btn.style.cursor = item.disabled ? 'not-allowed' : 'pointer';
+                    btn.style.borderBottom = '1px solid #eee';
+                    btn.style.opacity = item.disabled ? '0.5' : '1';
+                    btn.innerHTML = item.text;
+                    if (!item.disabled) {
+                        btn.onclick = function(e) {
+                            e.stopPropagation();
+                            sevenxConsoleLog('[MORE ITEM] Clicked:', item.text);
+                            moreActBtnAction(null, [null, item], item);
+                            menuContainer.style.display = 'none';
+                        };
+                        btn.onmouseover = function() { this.style.backgroundColor = '#f0f0f0'; };
+                        btn.onmouseout = function() { this.style.backgroundColor = 'transparent'; };
+                    }
+                    menuContainer.appendChild(btn);
+                });
+
+                // Position menu below button
+                var rect = moreBtnEl.getBoundingClientRect();
+                if (rect) {
+                    menuContainer.style.display = 'block';
+                    menuContainer.style.left = rect.left + 'px';
+                    menuContainer.style.top = (rect.bottom + 5) + 'px';
+                }
             }
         });
 
@@ -450,6 +673,30 @@ var sortableSubitems = function () {
 
     return subItemsTable;
     }
+
+    // Close menus when clicking outside of buttons/menus
+    document.addEventListener('click', function(e) {
+        var target = e.target;
+        var selectBtn = document.getElementById('ezbtn-items');
+        var createBtn = document.getElementById('ezbtn-new');
+        var moreBtn = document.getElementById('ezbtn-more');
+        var selectMenu = document.getElementById('select-items-menu-container');
+        var createMenu = document.getElementById('create-new-menu-container');
+        var moreMenu = document.getElementById('more-actions-menu-container');
+
+        var clickedButton = (selectBtn && selectBtn.contains(target)) ||
+                           (createBtn && createBtn.contains(target)) ||
+                           (moreBtn && moreBtn.contains(target));
+        var clickedMenu = (selectMenu && selectMenu.contains(target)) ||
+                         (createMenu && createMenu.contains(target)) ||
+                         (moreMenu && moreMenu.contains(target));
+
+        if (!clickedButton && !clickedMenu) {
+            if (selectMenu) selectMenu.style.display = 'none';
+            if (createMenu) createMenu.style.display = 'none';
+            if (moreMenu) moreMenu.style.display = 'none';
+        }
+    });
 
     return {
         init: function (conf, labels, groups, options) {

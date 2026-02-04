@@ -4,8 +4,9 @@
 
 {% import _self as macros %}
 
-{% set user_content = app.user.APIUser.content %}
+{% set user_content = app.user is not null and app.user.APIUser is not null ? app.user.APIUser.content : null %}
 
+{% if user_content is not null %}
 <div class="aside-footer">
     {% set user_avatar = macros.user_avatar( user_content ) %}
     {% if user_avatar|trim is empty %}
@@ -96,3 +97,4 @@
     <!-- / dropdown -->
 
 </div>
+{% endif %}

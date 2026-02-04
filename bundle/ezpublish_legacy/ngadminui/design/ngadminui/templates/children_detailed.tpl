@@ -11,6 +11,26 @@
 
 {literal}
 <script type="text/javascript">
+
+// Change tracking - increment this on each edit
+window.editVersion = 1;
+
+// Selection control functions for DataTable - available as fallback if buttons don't work
+window.selectAllCheckboxes = function() {
+    var cb = document.querySelectorAll('input[name="DeleteIDArray[]"]');
+    for (var i = 0; i < cb.length; i++) cb[i].checked = true;
+};
+
+window.selectNoneCheckboxes = function() {
+    var cb = document.querySelectorAll('input[name="DeleteIDArray[]"]');
+    for (var i = 0; i < cb.length; i++) cb[i].checked = false;
+};
+
+window.invertCheckboxes = function() {
+    var cb = document.querySelectorAll('input[name="DeleteIDArray[]"]');
+    for (var i = 0; i < cb.length; i++) cb[i].checked = !cb[i].checked;
+};
+
 (function() {
 {/literal}
 
@@ -180,6 +200,32 @@ var labelsObj = {ldelim}
 YUILoader.require(['datatable', 'button', 'container', 'cookie', 'element']);
 YUILoader.onSuccess = function() {
     sortableSubitems.init(confObj, labelsObj, createGroups, createOptions);
+
+    // Wire up selection button handlers after YUI initialization
+    // The actual menu item IDs created by YUI Button widget are:
+    // ezopt-menu-check (Select All Visible)
+    // ezopt-menu-uncheck (Select None)
+    // ezopt-menu-toggle (Invert Selection)
+
+    var selectAllBtn = YAHOO.util.Dom.get('ezopt-menu-check');
+    var selectNoneBtn = YAHOO.util.Dom.get('ezopt-menu-uncheck');
+    var invertBtn = YAHOO.util.Dom.get('ezopt-menu-toggle');
+
+    if (selectAllBtn) {
+        selectAllBtn.addEventListener('click', function() {
+            window.selectAllCheckboxes();
+        });
+    }
+    if (selectNoneBtn) {
+        selectNoneBtn.addEventListener('click', function() {
+            window.selectNoneCheckboxes();
+        });
+    }
+    if (invertBtn) {
+        invertBtn.addEventListener('click', function() {
+            window.invertCheckboxes();
+        });
+    }
 };
 var options = [];
 YUILoader.insert(options, 'js');
