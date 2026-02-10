@@ -1,4 +1,13 @@
 services:
+    netgen_admin_ui.event_listener.navigation_interceptor:
+        class: Netgen\Bundle\AdminUIBundle\EventListener\NavigationInterceptor
+        arguments:
+            - "@controller_resolver"
+            - "$is_admin_ui_siteaccess;netgen_admin_ui$"
+            - "$legacy_routes;netgen_admin_ui$"
+        tags:
+            - { name: kernel.event_subscriber }
+
     netgen_admin_ui.event_listener.security:
         class: Netgen\Bundle\AdminUIBundle\EventListener\SecurityListener
         # public: false
@@ -11,14 +20,6 @@ services:
         tags:
             - { name: kernel.event_subscriber }
 
-    netgen_admin_ui.event_listener.legacy_response:
-        class: Netgen\Bundle\AdminUIBundle\EventListener\LegacyResponseListener
-        # public: false
-        arguments:
-            - "$legacy_mode$"
-        tags:
-            - { name: kernel.event_subscriber }
-
     netgen_admin_ui.event_listener.legacy_exception:
         class: Netgen\Bundle\AdminUIBundle\EventListener\LegacyExceptionListener
         # public: false
@@ -27,15 +28,21 @@ services:
         tags:
             - { name: kernel.event_subscriber }
 
-    netgen_admin_ui.event_listener.controller:
-        class: Netgen\Bundle\AdminUIBundle\EventListener\ControllerListener
-        # public: false
+    netgen_admin_ui.event_listener.admin_security_and_access:
+        class: Netgen\Bundle\AdminUIBundle\EventListener\AdminSecurityAndAccessListener
+        # Using optional dependencies for flexibility
         arguments:
-            - "@controller_resolver"
-            - "$is_admin_ui_siteaccess;netgen_admin_ui$"
-            - "$legacy_routes;netgen_admin_ui$"
+            - "@netgen_information_collection.templating.admin_global_variable"
+            - "%netgen_admin_ui.information_collection.pagelayout%"
+            - "@eztags.templating.admin_global_variable"
+            - "%netgen_admin_ui.tags.pagelayout%"
+            - "@ezpublish.api.repository"
+            - "@ezpublish.config.resolver"
+        lazy: true
+        calls:
+            - [setIsAdminSiteAccess, [$is_admin_ui_siteaccess;netgen_admin_ui$]]
         tags:
-            - {name: kernel.event_subscriber}
+            - { name: kernel.event_subscriber }
 
     netgen_admin_ui.helper.path_helper:
         class: Netgen\Bundle\AdminUIBundle\Helper\PathHelper
@@ -45,3 +52,46 @@ services:
             - "@ezpublish.translation_helper"
             - "@ezpublish.config.resolver"
             - "@router"
+
+    netgen_admin_ui.event_listener.search_route:
+        class: Netgen\Bundle\AdminUIBundle\EventListener\SearchRouteListener
+        public: false
+        arguments:
+            - "@router"
+            - "%ezpublish.siteaccess.groups%"
+        tags:
+            - { name: kernel.event_subscriber }
+
+    netgen_admin_ui.controller.search_router:
+        class: Netgen\Bundle\AdminUIBundle\Controller\SearchRouterController
+        public: true
+        arguments:
+            - "@ngsite.controller.search"
+            - "@ezpublish_legacy.controller"
+
+    netgen_admin_ui.event_listener.root_redirect_intercept:
+        class: Netgen\Bundle\AdminUIBundle\EventListener\AdminUISiteAccessRootRedirectionInterceptListener
+        autowire: false
+        arguments:
+            - "@ezpublish.api.repository"
+            - "@ezpublish.config.resolver"
+            - "@http_kernel"
+            - "%ezpublish.siteaccess.groups%"
+        tags:
+            - { name: kernel.event_subscriber }
+
+    admin_ui.security.authentication_success_handler:
+        class: Netgen\Bundle\AdminUIBundle\Security\AdminUILoginRedirectAuthenticationSuccessHandler
+        public: true
+        arguments:
+            - '@router'
+            - '%ezpublish.siteaccess.groups%'
+    
+
+    # DISABLED: netgen_admin_ui.security.authentication_success_handler
+    # class: Netgen\Bundle\AdminUIBundle\Security\AdminUILoginRedirectAuthenticationSuccessHandler
+    # public: true
+    # arguments:
+    #     - "@router"
+    # tags:
+    #     - { name: 'security.authentication_success_handler' }

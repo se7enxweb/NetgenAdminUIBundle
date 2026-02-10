@@ -30,7 +30,9 @@
                         <input type="password" class="form-control" size="10" name="_password" id="passwordtext" placeholder="{{ 'netgen_admin_ui.login.password'|trans }}" tabindex="2" title="{{ 'netgen_admin_ui.login.password.title'|trans }}">
                     </div>
 
-                    <input type="hidden" name="_csrf_token" value="{{ csrf_token( "authenticate" ) }}" />
+                    {# CSRF token removed: prevents session initialization on login GET requests:
+                       <input type="hidden" name="_csrf_token" value="{{ csrf_token( "authenticate" ) }}" />
+		    #}
 
                     {#
                         If you want to control the URL the user

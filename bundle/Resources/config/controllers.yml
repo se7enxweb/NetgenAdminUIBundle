@@ -5,3 +5,8 @@ services:
         abstract: true
         calls:
             - [initialize, ["@service_container"]]
+    netgen_admin_ui.controller.ng_admin_ui_content_tree_full_view:
+        class: Netgen\Bundle\AdminUIBundle\Controller\NgAdminUIContentTreeFullViewController
+        arguments:
+            - '@ezpublish.config.resolver'
+        public: true

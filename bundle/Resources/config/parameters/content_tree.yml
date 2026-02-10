@@ -1,0 +1,3 @@
+parameters:
+    netgen_admin_ui.nga.content_tree_default_page: /content/view/full/2
+    netgen_admin_ui.nga.media_folder_location: /content/view/full/43

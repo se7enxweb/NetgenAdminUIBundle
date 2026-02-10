@@ -27,6 +27,11 @@ _ezpublishPreviewContentDefaultSa:
         _controller: "ezpublish_legacy.controller:indexAction"
     methods:  [GET]
 
+_ezpublishSearchRoute:
+    path: /content/search
+    defaults:
+        _controller: "ezpublish_legacy.controller:indexAction"
+
 # Overrides for eZ Platform Admin UI routes conflicting with eZ Publish Legacy
 # https://github.com/ezsystems/ezplatform-admin-ui/pull/287
 

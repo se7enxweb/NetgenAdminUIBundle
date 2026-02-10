@@ -25,6 +25,7 @@ class NetgenAdminUIExtension extends Extension implements PrependExtensionInterf
         );
 
         $loader->load('parameters.yml');
+        $loader->load('parameters/content_tree.yml');
         $loader->load('menu_plugins.yml');
         $loader->load('templating.yml');
         $loader->load('controllers.yml');
