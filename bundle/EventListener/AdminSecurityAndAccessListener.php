@@ -256,6 +256,14 @@ class AdminSecurityAndAccessListener implements EventSubscriberInterface
             return;
         }
 
+        // Check for authentication indicators
+        $hasCookie = $request->cookies && $request->cookies->has('eZSESSID');
+        
+        // If cookie exists, allow through - user is authenticated
+        if ($hasCookie) {
+            return;
+        }
+
         // Allow POST to /login and /login_check for form submission (form-based authentication)
         if (($pathInfo === '/login' || $pathInfo === '/login_check') && $method === 'POST') {
             return;
@@ -285,25 +293,9 @@ class AdminSecurityAndAccessListener implements EventSubscriberInterface
             }
         }
 
-        // Special case: root path without cookie - let RESPONSE handler deal with it
-        // This allows login redirects to / to reach the handler with the new session
-        if ($pathInfo === '/') {
-            return;
-        }
-
-        // Check for authentication indicators
-        $hasCookie = $request->cookies && $request->cookies->has('eZSESSID');
-        
-        // If cookie exists, allow through - user is authenticated
-        // This allows access to /media, /content/, and all other paths with valid session
-        if ($hasCookie) {
-            return;
-        }
-
-        // For UNAUTHENTICATED users only: redirect content paths to /login to establish session
-        // This ensures the basic auth is processed and session is created before routing
-        // NOTE: Do NOT block /media and /Media here - let routing rules handle those redirects
-        if (strpos($pathInfo, '/content/') === 0 || strpos($pathInfo, '/content') === 0) {
+        // Unauthenticated access: redirect root and content paths to /login
+        // This handles / and /content/* before routing reaches legacy kernel
+        if ($pathInfo === '/' || strpos($pathInfo, '/content') === 0) {
             $response = new RedirectResponse('/login', 302);
             $event->setResponse($response);
             return;
