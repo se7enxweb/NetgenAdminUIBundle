@@ -9,6 +9,7 @@ use eZ\Publish\Core\MVC\Symfony\MVCEvents;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\RouterInterface;
+use Netgen\Bundle\AdminUIBundle\Service\AdminUIConfiguration;
 
 /**
  * Listener that routes /content/search to legacy controller for admin siteaccesses
@@ -18,11 +19,13 @@ class SearchRouteListener implements EventSubscriberInterface
 {
     private RouterInterface $router;
     private array $siteaccessGroups;
+    private ?AdminUIConfiguration $adminUIConfig;
 
-    public function __construct(RouterInterface $router, array $siteaccessGroups = [])
+    public function __construct(RouterInterface $router, array $siteaccessGroups = [], AdminUIConfiguration $adminUIConfig = null)
     {
         $this->router = $router;
         $this->siteaccessGroups = $siteaccessGroups;
+        $this->adminUIConfig = $adminUIConfig;
     }
 
     public static function getSubscribedEvents(): array
@@ -47,14 +50,16 @@ class SearchRouteListener implements EventSubscriberInterface
     private function isSearchRoute(Request $request): bool
     {
         $pathInfo = $request->getPathInfo();
-        return strpos($pathInfo, '/content/search') === 0;
+        $searchPath = $this->adminUIConfig ? $this->adminUIConfig->getSearchRoutePath() : '/content/search';
+        return strpos($pathInfo, $searchPath) === 0;
     }
 
     private function isAdminSiteaccess(string $siteaccessName): bool
     {
-        // Check if siteaccess is in any admin group (admin_group, ngadmin_group, legacy_group)
+        // Check if siteaccess is in any admin group using configuration service
         foreach ($this->siteaccessGroups as $groupName => $groupSiteaccesses) {
-            if (in_array($groupName, ['admin_group', 'ngadmin_group', 'legacy_group'], true)) {
+            // Use configuration service to check admin groups (never hardcoded)
+            if ($this->adminUIConfig && $this->adminUIConfig->isAdminGroupName($groupName)) {
                 if (in_array($siteaccessName, $groupSiteaccesses, true)) {
                     return true;
                 }

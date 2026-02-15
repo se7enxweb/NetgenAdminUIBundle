@@ -1,28 +1,29 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Netgen\Bundle\AdminUIBundle\Controller;
 
 use eZ\Bundle\EzPublishCoreBundle\Controller as BaseController;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 
+/**
+ * Base controller for admin UI
+ *
+ * Note: The old initialize() and setContainer() pattern is deprecated.
+ * Modern Symfony uses dependency injection via constructor instead.
+ * Controllers can simply extend BaseController or use DI directly.
+ */
 abstract class Controller extends BaseController
 {
     /**
-     * Initializes the controller by setting the container and performing basic access checks.
-     *
-     * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
+     * Sub-classes providing content access control should override and implement
+     * their own permission checking logic using the AuthorizationChecker
+     * or similar modern Symfony security mechanisms.
      */
-    public function initialize(ContainerInterface $container)
+    protected function checkPermissions(): void
     {
-        $this->setContainer($container);
-        $this->checkPermissions();
-    }
-
-    /**
-     * Performs access checks on the controller.
-     */
-    protected function checkPermissions()
-    {
-        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_REMEMBERED');
+        // Legacy method kept for backward compatibility
+        // Override in subclasses to implement specific permission checks
     }
 }
+

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Netgen\Bundle\AdminUIBundle\EventListener;
 
 use eZ\Publish\API\Repository\Repository;
@@ -15,40 +17,12 @@ use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 class SecurityListener implements EventSubscriberInterface
 {
-    /**
-     * @var \Symfony\Component\HttpFoundation\RequestStack
-     */
-    protected $requestStack;
+    private RequestStack $requestStack;
+    private Repository $repository;
+    private ConfigResolverInterface $configResolver;
+    private TokenStorageInterface $tokenStorage;
+    private AuthorizationCheckerInterface $authorizationChecker;
 
-    /**
-     * @var \eZ\Publish\API\Repository\Repository
-     */
-    protected $repository;
-
-    /**
-     * @var \eZ\Publish\Core\MVC\ConfigResolverInterface
-     */
-    protected $configResolver;
-
-    /**
-     * @var \Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface
-     */
-    protected $tokenStorage;
-
-    /**
-     * @var \Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface
-     */
-    protected $authorizationChecker;
-
-    /**
-     * Constructor.
-     *
-     * @param \Symfony\Component\HttpFoundation\RequestStack $requestStack
-     * @param \eZ\Publish\API\Repository\Repository $repository
-     * @param \eZ\Publish\Core\MVC\ConfigResolverInterface $configResolver
-     * @param \Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface $tokenStorage
-     * @param \Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface $authorizationChecker
-     */
     public function __construct(
         RequestStack $requestStack,
         Repository $repository,
@@ -63,22 +37,17 @@ class SecurityListener implements EventSubscriberInterface
         $this->authorizationChecker = $authorizationChecker;
     }
 
-    /**
-     * @return array
-     */
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
-        return array(
-            LegacyEvents::POST_BUILD_LEGACY_KERNEL => array('onKernelBuilt', 255),
-        );
+        return [
+            LegacyEvents::POST_BUILD_LEGACY_KERNEL => ['onKernelBuilt', 255],
+        ];
     }
 
     /**
      * Performs actions related to security once the legacy kernel has been built.
-     *
-     * @param \eZ\Publish\Core\MVC\Legacy\Event\PostBuildKernelEvent $event
      */
-    public function onKernelBuilt(PostBuildKernelEvent $event)
+    public function onKernelBuilt(PostBuildKernelEvent $event): void
     {
         $currentRequest = $this->requestStack->getCurrentRequest();
 
@@ -92,18 +61,8 @@ class SecurityListener implements EventSubscriberInterface
             return;
         }
 
-        /*
-        Siteaccesses running with legacy_mode=false and RequireUserLogin=true have issues with
-        login redirects when protected legacy views are accessed via URL before the user is logged in.
-        This is because RequireUserLogin specific code in legacy kernel checks for existence of
-        'eZUserLoggedInID' DURING the legacy kernel initialization process. Since 'eZUserLoggedInID'
-        session variable can only be set AFTER the legacy kernel is built and initialized,
-        via runCallback method, the code always fails, causing repeated login screens.
-
-        This is a workaround to set the session variable after the kernel is built, but before
-        it's initialized, so the RequireUserLogin code should work fine.
-        */
-
+        // Set eZUserLoggedInID session variable for legacy kernel
+        // This is needed for RequireUserLogin to work properly in legacy views
         $currentRequest->getSession()->set(
             'eZUserLoggedInID',
             $this->repository->getCurrentUser()->id
@@ -111,15 +70,11 @@ class SecurityListener implements EventSubscriberInterface
     }
 
     /**
-     * @return bool
+     * Checks if user is authenticated via IS_AUTHENTICATED_REMEMBERED role
      */
-    protected function isUserAuthenticated()
+    protected function isUserAuthenticated(): bool
     {
-        // IS_AUTHENTICATED_FULLY inherits from IS_AUTHENTICATED_REMEMBERED.
-        // User can be either authenticated by providing credentials during current session
-        // or by "remember me" if available.
-        return
-            $this->tokenStorage->getToken() instanceof TokenInterface
+        return $this->tokenStorage->getToken() instanceof TokenInterface
             && $this->authorizationChecker->isGranted('IS_AUTHENTICATED_REMEMBERED');
     }
 }

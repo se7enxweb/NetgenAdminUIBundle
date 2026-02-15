@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Netgen\Bundle\AdminUIBundle\EventListener;
 
 use eZ\Bundle\EzPublishLegacyBundle\LegacyResponse;
@@ -12,40 +14,26 @@ use Symfony\Component\HttpKernel\KernelEvents;
 
 class LegacyResponseListener implements EventSubscriberInterface
 {
-    /**
-     * @var bool
-     */
-    protected $legacyMode;
+    private bool $legacyMode;
 
-    /**
-     * Constructor.
-     *
-     * @param bool $legacyMode
-     */
-    public function __construct($legacyMode)
+    public function __construct(bool $legacyMode = false)
     {
         $this->legacyMode = $legacyMode;
     }
 
-    /**
-     * Returns an array of event names this subscriber wants to listen to.
-     *
-     * @return array
-     */
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
-        return array(KernelEvents::RESPONSE => 'onKernelResponse');
+        return [
+            KernelEvents::RESPONSE => 'onKernelResponse',
+        ];
     }
 
     /**
-     * Converts the legacy 404 response to proper Symfony exception.
-     *
-     *
-     * @param \Symfony\Component\HttpKernel\Event\FilterResponseEvent $event
+     * Converts legacy 404 response to proper Symfony exception.
      *
      * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
      */
-    public function onKernelResponse(FilterResponseEvent $event)
+    public function onKernelResponse(FilterResponseEvent $event): void
     {
         $routeName = $event->getRequest()->attributes->get('_route');
         if ($routeName !== FallbackRouter::ROUTE_NAME) {
@@ -57,16 +45,13 @@ class LegacyResponseListener implements EventSubscriberInterface
             return;
         }
 
-        if (!$this->legacyMode && (int) $response->getStatusCode() === Response::HTTP_NOT_FOUND) {
+        if (!$this->legacyMode && (int)$response->getStatusCode() === Response::HTTP_NOT_FOUND) {
             $moduleResult = $response->getModuleResult();
             $exception = new NotFoundHttpException(
-                isset($moduleResult['errorMessage']) ?
-                    $moduleResult['errorMessage'] :
-                    'Not Found'
+                isset($moduleResult['errorMessage']) ? $moduleResult['errorMessage'] : 'Not Found'
             );
 
             $exception->setOriginalResponse($response);
-
             throw $exception;
         }
     }
