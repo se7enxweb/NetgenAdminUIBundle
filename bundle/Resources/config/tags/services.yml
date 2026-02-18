@@ -1,3 +1,1 @@
-# CONSOLIDATED: SetTagsAdminPageLayoutListener merged into AdminSecurityAndAccessListener
-# See Resources/config/services.yml for consolidated listener registration
-services: {}
+services: ~
