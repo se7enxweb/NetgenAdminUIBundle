@@ -74,7 +74,7 @@
         <div class="title-wrapper clearfix">
             {include uri='design:window_preview_toolbar.tpl'}
 
-            {def $js_class_languages = $node.object.content_class.prioritized_languages_js_array|explode( '"' )|implode( '\'' )
+            {def $js_class_languages = condi( is_set( $node.object.content_class.prioritized_languages_js_array ), $node.object.content_class.prioritized_languages_js_array|explode( '"' )|implode( "'" ), false() )
                  $disable_another_language = cond( eq( 0, count( $node.object.content_class.can_create_languages ) ),"'edit-class-another-language'", '-1' )
                  $disabled_sub_menu = "['class-createnodefeed', 'class-removenodefeed']"
                  $hide_status = ''}
