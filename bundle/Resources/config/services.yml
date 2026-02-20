@@ -1,4 +1,48 @@
 services:
+    # Centralized Admin UI Configuration Service
+    # Single source of truth for all paths, locations, and authentication settings
+    # Eliminates hardcoded values throughout listeners
+    netgen_admin_ui.configuration:
+        class: Netgen\Bundle\AdminUIBundle\Service\AdminUIConfiguration
+        arguments:
+            -
+                admin_group_names:
+                    - admin_group
+                    - ngadmin_group
+                    - legacy_group
+                login_path: /login
+                login_check_path: /login_check
+                logout_path: /logout
+                dashboard_path: /content/dashboard
+                root_path: /
+                search_route_path: /content/search
+                basic_auth_scheme: "Basic "
+                public_paths:
+                    - /
+                    - /login
+                    - /logout
+                    - /login_check
+                    - /extension/
+                    - /design/
+                    - /var/storage/
+                    - /image/
+                    - /bundles/
+                media_location: 43
+                design_location: 58
+                users_location: 5
+
+    netgen_admin_ui.event_listener.security:
+        class: Netgen\Bundle\AdminUIBundle\EventListener\SecurityListener
+        # public: false
+        arguments:
+            - "@request_stack"
+            - "@ezpublish.api.repository"
+            - "@ezpublish.config.resolver"
+            - "@security.token_storage"
+            - "@security.authorization_checker"
+        tags:
+            - { name: kernel.event_subscriber }
+
     netgen_admin_ui.helper.path_helper:
         class: Netgen\Bundle\AdminUIBundle\Helper\PathHelper
         public: false
@@ -7,6 +51,23 @@ services:
             - "@ezpublish.translation_helper"
             - "@ezpublish.config.resolver"
             - "@router"
+
+    netgen_admin_ui.event_listener.search_route:
+        class: Netgen\Bundle\AdminUIBundle\EventListener\SearchRouteListener
+        public: false
+        arguments:
+            - "@router"
+            - "%ezpublish.siteaccess.groups%"
+            - "@netgen_admin_ui.configuration"  # Configuration service
+        tags:
+            - { name: kernel.event_subscriber }
+
+    netgen_admin_ui.controller.search_router:
+        class: Netgen\Bundle\AdminUIBundle\Controller\SearchRouterController
+        public: true
+        arguments:
+            - "@ngsite.controller.search"
+            - "@ezpublish_legacy.controller"
 
     netgen_admin_ui.event_listener.legacy_exception:
         class: Netgen\Bundle\AdminUIBundle\EventListener\LegacyExceptionListener
