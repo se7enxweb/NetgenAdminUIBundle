@@ -2,6 +2,7 @@
 
 namespace Netgen\Bundle\AdminUIBundle;
 
+use Netgen\Bundle\AdminUIBundle\DependencyInjection\CompilerPass\AdminUIUrlAliasRouterPass;
 use Netgen\Bundle\AdminUIBundle\DependencyInjection\CompilerPass\MenuPluginRegistryPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
@@ -18,5 +19,6 @@ class NetgenAdminUIBundle extends Bundle
     public function build(ContainerBuilder $container)
     {
         $container->addCompilerPass(new MenuPluginRegistryPass());
+        $container->addCompilerPass(new AdminUIUrlAliasRouterPass());
     }
 }
