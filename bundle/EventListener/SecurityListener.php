@@ -129,16 +129,19 @@ class SecurityListener implements EventSubscriberInterface
         }
 
         // Build the login redirect as an absolute URL.
-        // When the siteaccess is URI-matched (e.g. /ngadminui/content/search → siteaccess 'ngadminui'),
-        // eZ Platform sets the 'semanticPathinfo' attribute to the path with the siteaccess prefix
-        // stripped (/content/search). The difference between getPathInfo() and semanticPathinfo is
-        // exactly the URI prefix (/ngadminui) that must be prepended to /login so the firewall
-        // resolves it correctly. For host- or port-matched siteaccesses the two values are equal
-        // and $uriSiteaccessPrefix stays empty.
-        $semanticPath       = $request->attributes->get('semanticPathinfo', $pathInfo);
-        $uriSiteaccessPrefix = ($semanticPath !== $pathInfo)
-            ? substr($pathInfo, 0, strlen($pathInfo) - strlen($semanticPath))
-            : '';
+        // When the siteaccess is URI-matched (e.g. /ngadminui/content/search), eZ Platform sets
+        // 'semanticPathinfo' to the path with the siteaccess segment stripped (/content/search).
+        // The difference in length gives us the /ngadminui prefix to prepend to /login.
+        // Edge case: when pathInfo has no trailing slash (e.g. '/ngadminui') and semanticPathinfo
+        // is '/', the arithmetic strlen('/ngadminui') - strlen('/') = 9 cuts the last character.
+        // Fix: pad pathInfo with a trailing slash before subtracting, then rtrim it back off.
+        $semanticPath        = $request->attributes->get('semanticPathinfo', $pathInfo);
+        if ($semanticPath !== $pathInfo) {
+            $padded              = (substr($pathInfo, -1) === '/') ? $pathInfo : $pathInfo . '/';
+            $uriSiteaccessPrefix = rtrim(substr($padded, 0, strlen($padded) - strlen($semanticPath)), '/');
+        } else {
+            $uriSiteaccessPrefix = '';
+        }
 
         $loginUrl = $request->getSchemeAndHttpHost()
             . $request->getBaseUrl()
