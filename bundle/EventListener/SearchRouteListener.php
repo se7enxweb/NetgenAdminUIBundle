@@ -49,9 +49,18 @@ class SearchRouteListener implements EventSubscriberInterface
 
     private function isSearchRoute(Request $request): bool
     {
-        $pathInfo = $request->getPathInfo();
         $searchPath = $this->adminUIConfig ? $this->adminUIConfig->getSearchRoutePath() : '/content/search';
-        return strpos($pathInfo, $searchPath) === 0;
+
+        // For URI-based siteaccesses (e.g. /ngadminui/content/search), eZ Platform stores
+        // the siteaccess-stripped path in the 'semanticPathinfo' request attribute while
+        // getPathInfo() still returns the full prefixed path. Check both so that the match
+        // works regardless of whether the siteaccess is matched by URI, host, or port.
+        $semanticPathinfo = $request->attributes->get('semanticPathinfo', '');
+        if ($semanticPathinfo !== '' && strpos($semanticPathinfo, $searchPath) === 0) {
+            return true;
+        }
+
+        return strpos($request->getPathInfo(), $searchPath) === 0;
     }
 
     private function isAdminSiteaccess(string $siteaccessName): bool
