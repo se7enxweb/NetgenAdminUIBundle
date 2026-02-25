@@ -101,6 +101,14 @@ class SecurityListener implements EventSubscriberInterface
             return;
         }
 
+        // Legacy-mode siteaccesses (e.g. legacy_admin with legacy_mode: true) are fully
+        // self-contained — the legacy kernel handles its own authentication and login form.
+        // Intercepting them here would redirect to a Symfony /login that the legacy siteaccess
+        // never set up, so we leave them alone entirely.
+        if ($this->configResolver->getParameter('legacy_mode') === true) {
+            return;
+        }
+
         // Guard: allow auth-related paths even when they carry a siteaccess prefix.
         // e.g. /ngadminui/login must be treated the same as /login.
         // We use suffix matching so /{siteaccess}/login is recognised correctly.
