@@ -8,7 +8,6 @@ use eZ\Publish\API\Repository\Repository;
 use eZ\Publish\Core\MVC\ConfigResolverInterface;
 use eZ\Publish\Core\MVC\Legacy\Event\PostBuildKernelEvent;
 use eZ\Publish\Core\MVC\Legacy\LegacyEvents;
-use ezpWebBasedKernelHandler;
 use Netgen\Bundle\AdminUIBundle\Service\AdminUIConfiguration;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -102,9 +101,11 @@ class SecurityListener implements EventSubscriberInterface
         }
 
         // Legacy-mode siteaccesses (e.g. legacy_admin with legacy_mode: true) are fully
-        // self-contained — the legacy kernel handles its own authentication and login form.
-        // Intercepting them here would redirect to a Symfony /login that the legacy siteaccess
-        // never set up, so we leave them alone entirely.
+        // self-contained — the legacy kernel handles its own authentication, login form
+        // and RequireUserLogin redirects. We leave them alone entirely.
+        // LegacyResponseManager now reads legacy_mode per-request (not at construction time),
+        // so 404/403 results from the legacy kernel are returned as proper HTTP responses
+        // rather than thrown Symfony exceptions.
         if ($this->configResolver->getParameter('legacy_mode') === true) {
             return;
         }
@@ -225,22 +226,37 @@ class SecurityListener implements EventSubscriberInterface
     {
         $currentRequest = $this->requestStack->getCurrentRequest();
 
-        // Ignore if not in web context, if legacy_mode is active or if user is not authenticated
+        // Ignore if there is no active web request or the user is not authenticated.
+        // Note: we intentionally do NOT guard on ezpWebBasedKernelHandler here.
+        // ezpKernelTreeMenu is NOT a subclass of ezpWebBasedKernelHandler, yet it still
+        // requires eZUserLoggedInID in the session — without it the treemenu sub-kernel
+        // runs as anonymous and returns empty children. The $currentRequest !== null check
+        // is sufficient to scope this to real HTTP contexts.
         if (
             $currentRequest === null
-            || !$event->getKernelHandler() instanceof ezpWebBasedKernelHandler
-            || $this->configResolver->getParameter('legacy_mode') === true
             || !$this->isUserAuthenticated()
         ) {
             return;
         }
 
-        // Set eZUserLoggedInID session variable for legacy kernel
-        // This is needed for RequireUserLogin to work properly in legacy views
-        $currentRequest->getSession()->set(
-            'eZUserLoggedInID',
-            $this->repository->getCurrentUser()->id
-        );
+        // Set eZUserLoggedInID in the eZ legacy session namespace.
+        //
+        // IMPORTANT: we MUST use eZSession::set() here, NOT $request->getSession()->set().
+        //
+        // Symfony's session writes to $_SESSION['_sf2_attributes']['eZUserLoggedInID']
+        // (the AttributeBag storage key), but eZUser::instance() reads via eZSession::get()
+        // which reads from $_SESSION[$ezsessionNamespace]['eZUserLoggedInID'] — a completely
+        // different location in $_SESSION. Writing via Symfony's session bag is ignored by
+        // the legacy kernel entirely.
+        //
+        // eZSession is autoloaded by the legacy kernel constructor before POST_BUILD_LEGACY_KERNEL
+        // fires, and eZSession::$hasStarted is true at this point (set during sessionInit()), so
+        // eZSession::set() writes to the correct namespaced location the legacy kernel reads from.
+        $userId = $this->repository->getCurrentUser()->id;
+        if ( class_exists( \eZSession::class, false ) )
+        {
+            \eZSession::set( 'eZUserLoggedInID', $userId );
+        }
     }
 
     /**
