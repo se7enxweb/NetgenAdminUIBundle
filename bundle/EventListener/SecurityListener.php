@@ -128,11 +128,21 @@ class SecurityListener implements EventSubscriberInterface
             return;
         }
 
-        // Build the login redirect as an absolute URL — scheme + host + siteaccess base + /login.
-        // Using getSchemeAndHttpHost() + getBaseUrl() is unambiguous regardless of whether
-        // the siteaccess is matched by path, host, or port.
+        // Build the login redirect as an absolute URL.
+        // When the siteaccess is URI-matched (e.g. /ngadminui/content/search → siteaccess 'ngadminui'),
+        // eZ Platform sets the 'semanticPathinfo' attribute to the path with the siteaccess prefix
+        // stripped (/content/search). The difference between getPathInfo() and semanticPathinfo is
+        // exactly the URI prefix (/ngadminui) that must be prepended to /login so the firewall
+        // resolves it correctly. For host- or port-matched siteaccesses the two values are equal
+        // and $uriSiteaccessPrefix stays empty.
+        $semanticPath       = $request->attributes->get('semanticPathinfo', $pathInfo);
+        $uriSiteaccessPrefix = ($semanticPath !== $pathInfo)
+            ? substr($pathInfo, 0, strlen($pathInfo) - strlen($semanticPath))
+            : '';
+
         $loginUrl = $request->getSchemeAndHttpHost()
             . $request->getBaseUrl()
+            . $uriSiteaccessPrefix
             . $this->adminUIConfiguration->getLoginPath();
 
         if ($request->hasSession()) {
