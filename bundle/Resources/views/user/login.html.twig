@@ -32,6 +32,17 @@
 
                     {# CSRF token : prevents session initialization on expired login GET requests #}
                     <input type="hidden" name="_csrf_token" value="{{ csrf_token( "authenticate" ) }}" />
+
+                    {# Redirect target after login. SecurityListener stores the original URI in the session.
+                       We echo it here so DefaultAuthenticationSuccessHandler picks it up from the POST body.
+                       Guard: never emit a login/logout path (with or without siteaccess prefix) as the
+                       target, which would create a redirect loop. #}
+                    {% set _target_path = app.session.get('_security.ezpublish_front.target_path') %}
+                    {% set _login_path  = path('login') %}
+                    {% if _target_path and _login_path not in _target_path %}
+                        <input type="hidden" name="_target_path" value="{{ _target_path }}" />
+                    {% endif %}
+
                     <button class="btn btn-primary" type="submit" id="loginbutton" name="LoginButton" tabindex="3" title="{{ 'netgen_admin_ui.login.submit.title'|trans }}">{{ 'netgen_admin_ui.login.submit'|trans }}</button>
                 {% endblock %}
             </form>
