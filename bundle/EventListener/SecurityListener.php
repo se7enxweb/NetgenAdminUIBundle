@@ -51,12 +51,13 @@ class SecurityListener implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
-            // Priority 11: must run BEFORE eZ Platform's URL-alias forward listener (priority 10).
-            // That listener calls $event->getKernel()->handle($forwardRequest) and then
-            // $event->stopPropagation(), which means any listener at priority ≤ 10 never fires.
-            // Because we run before the security firewall context listener (priority 8), the
-            // TokenStorage is not yet populated — authentication is checked via the session directly.
-            KernelEvents::REQUEST                  => ['onKernelRequest', 11],
+            // Priority 44: must run AFTER eZ Platform's SiteAccessMatchListener (priority 45),
+            // so that $request->attributes->get('siteaccess') is already populated, allowing
+            // us to skip the redirect for non-admin siteaccesses (e.g. 'en', 'de').
+            // Must remain BEFORE the URL-alias forward listener (priority 10), which calls
+            // $event->getKernel()->handle() and stopPropagation(), and BEFORE the security
+            // firewall context listener (priority 8) — authentication is checked via the session.
+            KernelEvents::REQUEST                  => ['onKernelRequest', 44],
             LegacyEvents::POST_BUILD_LEGACY_KERNEL => ['onKernelBuilt', 255],
         ];
     }
@@ -92,9 +93,11 @@ class SecurityListener implements EventSubscriberInterface
 
         // Only enforce the admin login redirect for siteaccesses that belong to an
         // admin group (ngadmin_group, admin_group, legacy_group — as declared in
-        // app/config yaml). Frontend/user siteaccesses (e.g. 'en') are left alone.
+        // app/config yaml). Frontend/user siteaccesses (e.g. 'en', 'de') are left alone.
+        // We fire at priority 44, after SiteAccessMatchListener (45), so the siteaccess
+        // attribute is always populated. If somehow null, skip as a safe fallback.
         $siteaccess = $request->attributes->get('siteaccess');
-        if ($siteaccess !== null && !$this->isAdminSiteaccess($siteaccess->name)) {
+        if ($siteaccess === null || !$this->isAdminSiteaccess($siteaccess->name)) {
             return;
         }
 
@@ -157,8 +160,7 @@ class SecurityListener implements EventSubscriberInterface
 
     /**
      * Returns true when the named siteaccess belongs to one of the configured
-     * admin siteaccess groups (ngadmin_group, admin_group, legacy_group, …).
-     * Mirrors the identical check in SearchRouteListener.
+     * admin siteaccess groups (ngadmin_group, admin_group, legacy_group, ...).
      */
     private function isAdminSiteaccess(string $siteaccessName): bool
     {
