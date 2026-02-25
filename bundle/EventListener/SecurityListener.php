@@ -27,6 +27,8 @@ class SecurityListener implements EventSubscriberInterface
     private TokenStorageInterface $tokenStorage;
     private AuthorizationCheckerInterface $authorizationChecker;
     private AdminUIConfiguration $adminUIConfiguration;
+    /** @var array<string, string[]> Siteaccess groups from %ezpublish.siteaccess.groups% */
+    private array $siteaccessGroups;
 
     public function __construct(
         RequestStack $requestStack,
@@ -34,7 +36,8 @@ class SecurityListener implements EventSubscriberInterface
         ConfigResolverInterface $configResolver,
         TokenStorageInterface $tokenStorage,
         AuthorizationCheckerInterface $authorizationChecker,
-        AdminUIConfiguration $adminUIConfiguration
+        AdminUIConfiguration $adminUIConfiguration,
+        array $siteaccessGroups = []
     ) {
         $this->requestStack = $requestStack;
         $this->repository = $repository;
@@ -42,6 +45,7 @@ class SecurityListener implements EventSubscriberInterface
         $this->tokenStorage = $tokenStorage;
         $this->authorizationChecker = $authorizationChecker;
         $this->adminUIConfiguration = $adminUIConfiguration;
+        $this->siteaccessGroups = $siteaccessGroups;
     }
 
     public static function getSubscribedEvents(): array
@@ -85,6 +89,14 @@ class SecurityListener implements EventSubscriberInterface
 
         $request  = $event->getRequest();
         $pathInfo = $request->getPathInfo();
+
+        // Only enforce the admin login redirect for siteaccesses that belong to an
+        // admin group (ngadmin_group, admin_group, legacy_group — as declared in
+        // app/config yaml). Frontend/user siteaccesses (e.g. 'en') are left alone.
+        $siteaccess = $request->attributes->get('siteaccess');
+        if ($siteaccess !== null && !$this->isAdminSiteaccess($siteaccess->name)) {
+            return;
+        }
 
         // Guard: allow auth-related paths even when they carry a siteaccess prefix.
         // e.g. /ngadminui/login must be treated the same as /login.
@@ -141,6 +153,25 @@ class SecurityListener implements EventSubscriberInterface
         }
 
         $event->setResponse(new RedirectResponse($loginUrl));
+    }
+
+    /**
+     * Returns true when the named siteaccess belongs to one of the configured
+     * admin siteaccess groups (ngadmin_group, admin_group, legacy_group, …).
+     * Mirrors the identical check in SearchRouteListener.
+     */
+    private function isAdminSiteaccess(string $siteaccessName): bool
+    {
+        foreach ($this->adminUIConfiguration->getAdminGroupNames() as $adminGroup) {
+            if (
+                isset($this->siteaccessGroups[$adminGroup]) &&
+                in_array($siteaccessName, $this->siteaccessGroups[$adminGroup], true)
+            ) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

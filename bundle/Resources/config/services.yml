@@ -41,6 +41,7 @@ services:
             - "@security.token_storage"
             - "@security.authorization_checker"
             - "@netgen_admin_ui.configuration"
+            - "%ezpublish.siteaccess.groups%"
         tags:
             - { name: kernel.event_subscriber }
 
