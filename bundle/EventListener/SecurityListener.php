@@ -239,24 +239,26 @@ class SecurityListener implements EventSubscriberInterface
             return;
         }
 
-        // Set eZUserLoggedInID in the eZ legacy session namespace.
+        // Set eZUserLoggedInID so the legacy kernel recognises the authenticated user.
         //
-        // IMPORTANT: we MUST use eZSession::set() here, NOT $request->getSession()->set().
+        // We use the Symfony session directly ($currentRequest->getSession()->set()), NOT
+        // \eZSession::set(). The reason is subtle but critical:
         //
-        // Symfony's session writes to $_SESSION['_sf2_attributes']['eZUserLoggedInID']
-        // (the AttributeBag storage key), but eZUser::instance() reads via eZSession::get()
-        // which reads from $_SESSION[$ezsessionNamespace]['eZUserLoggedInID'] — a completely
-        // different location in $_SESSION. Writing via Symfony's session bag is ignored by
-        // the legacy kernel entirely.
+        // \eZSession::set() calls eZSession::start() when eZSession::$hasStarted === false.
+        // eZSession::init() — the only method that marks $hasStarted = true without calling
+        // session_start() — is only invoked from CLIHandler, never during web requests.
+        // Therefore $hasStarted is always false here, and eZSession::start() → forceStart()
+        // → sessionStart() → session_start() fires a second time. Symfony's NativeSessionStorage
+        // already opened the PHP session, so PHP emits E_NOTICE "session already active".
+        // Symfony's debug error handler converts that notice to an \ErrorException, which
+        // aborts the legacy kernel mid-execution — breaking login entirely.
         //
-        // eZSession is autoloaded by the legacy kernel constructor before POST_BUILD_LEGACY_KERNEL
-        // fires, and eZSession::$hasStarted is true at this point (set during sessionInit()), so
-        // eZSession::set() writes to the correct namespaced location the legacy kernel reads from.
+        // Using getSession()->set() is correct: the legacy bridge configures eZSession with
+        // $namespace = '_sf2_attributes', which is exactly the storage key used by Symfony's
+        // AttributeBag. Both APIs write to $_SESSION['_sf2_attributes']['eZUserLoggedInID'],
+        // so the legacy kernel's eZSession::get('eZUserLoggedInID') reads back the same value.
         $userId = $this->repository->getCurrentUser()->id;
-        if ( class_exists( \eZSession::class, false ) )
-        {
-            \eZSession::set( 'eZUserLoggedInID', $userId );
-        }
+        $currentRequest->getSession()->set( 'eZUserLoggedInID', $userId );
     }
 
     /**
