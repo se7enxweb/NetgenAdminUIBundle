@@ -1,3 +1,70 @@
+{# YUI 3 (provides the YUI global) and YUI 2 (provides the YAHOO global),
+   served from local ezjscore bundle files via the public/extension symlink. #}
+<script type="text/javascript" src="/extension/ezjscore/design/standard/lib/yui/3.17.2/build/yui/yui-min.js"></script>
+<script type="text/javascript" src="/extension/ezjscore/design/standard/lib/yui/2.8.2/build/yahoo-dom-event/yahoo-dom-event.js"></script>
+<script type="text/javascript" src="/extension/ezjscore/design/standard/lib/yui/2.8.2/build/yuiloader/yuiloader-min.js"></script>
+<script type="text/javascript">
+var YUI3_config = {
+    "base": "/extension/ezjscore/design/standard/lib/yui/3.17.2/build/",
+    "combine": false,
+    "modules": {
+        "ezcollapsiblemenu": {
+            "fullpath": "/design/admin/javascript/ezcollapsiblemenu.js",
+            "requires": ["transition", "event"]
+        },
+        "ezautosubmit": {
+            "fullpath": "/extension/ezautosave/design/standard/javascript/ezautosubmit.js",
+            "requires": ["event", "event-custom", "node-event-delegate", "io-form", "io-upload-iframe", "yui-later", "json-parse"]
+        },
+        "ezcontentpreview": {
+            "fullpath": "/extension/ezautosave/design/admin/javascript/ezcontentpreview.js",
+            "requires": ["transition", "ezcollapsiblemenu", "node-screen", "node-event-delegate"]
+        },
+        "io-ez": {
+            "fullpath": "/extension/ezjscore/design/standard/javascript/io-ez.js",
+            "requires": ["io-base", "json-parse"]
+        }
+    }
+};
+var YUI2_config = {base: '/extension/ezjscore/design/standard/lib/yui/2.8.2/build/', loadOptional: true};
+var YUILoader = new YAHOO.util.YUILoader(YUI2_config);
+</script>
+{# BackendJavaScriptList — non-jQuery scripts (safe before jQuery) #}
+<script type="text/javascript" src="/design/standard/javascript/tools/ezjsselection.js"></script>
+<script type="text/javascript" src="/design/standard/javascript/lib/ezjslibimagepreloader.js"></script>
+<script type="text/javascript" src="/design/admin/javascript/popupmenu/ezpopupmenu.js"></script>
+<script type="text/javascript" src="/design/admin/javascript/fixed_toolbar.js"></script>
+<script type="text/javascript" src="/design/admin/javascript/ezmodalwindow.js"></script>
+<script type="text/javascript" src="/design/admin/javascript/ezajaxuploader.js"></script>
+<script type="text/javascript" src="/design/admin/javascript/ezajaxsubitems_datatable.js"></script>
+
+{# jQuery first, then all scripts that depend on it #}
+<script type="text/javascript" src="{{ asset('bundles/netgenadminui/bower/jquery/dist/jquery.min.js') }}"></script>
+
+{# ezjsc::jqueryio — static jQuery.ez AJAX helper (mirrors PHP-generated version) #}
+<script type="text/javascript" src="/extension/ezjscore/design/standard/javascript/jquery.ez.js"></script>
+{# ezjsc::jqueryUI #}
+<script type="text/javascript" src="/extension/ezjscore/design/standard/javascript/jquery-ui-1.10.3.custom.min.js"></script>
+
+{# BackendJavaScriptList — jQuery-dependent admin scripts #}
+<script type="text/javascript" src="/design/admin/javascript/leftmenu_widthcontrol.js"></script>
+<script type="text/javascript" src="/design/admin/javascript/contentstructuremenu_dynamic.js"></script>
+
+{# BackendJavaScriptList — eztags extension scripts #}
+<script type="text/javascript" src="/extension/eztags/design/standard/javascript/jqmodal.js"></script>
+<script type="text/javascript" src="/extension/eztags/design/standard/javascript/jstree.min.js"></script>
+<script type="text/javascript" src="/extension/eztags/design/standard/javascript/jquery.eztags.js"></script>
+<script type="text/javascript" src="/extension/eztags/design/standard/javascript/jquery.eztags.select.js"></script>
+<script type="text/javascript" src="/extension/eztags/design/standard/javascript/jquery.eztags.tree.js"></script>
+<script type="text/javascript" src="/extension/eztags/design/standard/javascript/tagsstructuremenu.js"></script>
+<script type="text/javascript" src="/extension/eztags/design/admin2/javascript/jquery.eztagschildren.js"></script>
+<script type="text/javascript" src="/extension/ezclasslists/design/standard/javascript/classlists.js"></script>
+
+{# Admin tab switching and AJAX relations — depend on jQuery + $.ez #}
+<script type="text/javascript" src="/design/admin/javascript/node_tabs.js"></script>
+<script type="text/javascript" src="/design/admin/javascript/ezajaxrelations_jquery.js"></script>
+
+{# NetgenAdminUI bundle assets #}
 <script type="text/javascript" src="{{ asset('bundles/netgenadminui/js/resizable.js') }}"></script>
 <script type="text/javascript" src="{{ asset('bundles/netgenadminui/bower/bootstrap-sass/assets/javascripts/bootstrap.js') }}"></script>
 <script type="text/javascript" src="{{ asset('bundles/netgenadminui/bower/ace-builds/src-min-noconflict/ace.js') }}"></script>

@@ -1,6 +1,6 @@
 {
-    "name": "netgen/admin-ui-bundle",
-    "description": "Netgen Admin UI implements an alternate administration UI for Ibexa OSS, based on eZ Publish Legacy administration interface",
+    "name": "se7enxweb/admin-ui-bundle",
+    "description": "7x Netgen Admin UI implements an alternate administration UI for Exponential Platform / Ibexa OSS, based on eZ Publish Legacy administration interface",
     "type": "ezplatform-bundle",
     "keywords": [
         "ezpublish",
@@ -10,9 +10,13 @@
         "admin-ui",
         "admin"
     ],
-    "homepage": "https://github.com/netgen/NetgenAdminUIBundle",
-    "license": "GPL-2.0-only",
+    "homepage": "https://github.com/se7enxweb/NetgenAdminUIBundle",
+    "license": "GPL-2.0-or-later",
     "authors": [
+        {
+            "name": "7x",
+            "homepage": "https://se7enx.com"
+        },
         {
             "name": "Netgen",
             "homepage": "https://netgen.io"
