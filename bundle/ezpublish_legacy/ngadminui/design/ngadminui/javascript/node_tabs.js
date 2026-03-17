@@ -53,7 +53,7 @@ jQuery(function( $ )
         open : function( id, save )
         {
             var li = $( '#' + id );
-            if ( li.size() && !li.hasClass('active') )
+            if ( li.length && !li.hasClass('active') )
             {
                 if ( NodeTab.timeout !== null )
                 {
@@ -114,7 +114,7 @@ jQuery(function( $ )
 
     var openTab = NodeTab.getCookie( 'adminNavigationTab' ),
         selectedId = '';
-    if ( openTab && $('div.tab-block ul.tabs.tabs-by-cookie #node-tab-' + openTab).size() )
+    if ( openTab && $('div.tab-block ul.tabs.tabs-by-cookie #node-tab-' + openTab).length )
     {
         NodeTab.open( 'node-tab-' + openTab );
     } else {
