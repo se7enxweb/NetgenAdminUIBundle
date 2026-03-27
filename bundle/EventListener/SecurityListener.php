@@ -257,7 +257,7 @@ class SecurityListener implements EventSubscriberInterface
         // $namespace = '_sf2_attributes', which is exactly the storage key used by Symfony's
         // AttributeBag. Both APIs write to $_SESSION['_sf2_attributes']['eZUserLoggedInID'],
         // so the legacy kernel's eZSession::get('eZUserLoggedInID') reads back the same value.
-        $userId = $this->repository->getCurrentUser()->id;
+        $userId = $this->repository->getPermissionResolver()->getCurrentUserReference()->getUserId();
         $currentRequest->getSession()->set( 'eZUserLoggedInID', $userId );
     }
 
