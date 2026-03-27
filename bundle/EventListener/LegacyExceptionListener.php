@@ -4,7 +4,7 @@ namespace Netgen\Bundle\AdminUIBundle\EventListener;
 
 use eZ\Bundle\EzPublishLegacyBundle\Routing\FallbackRouter;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
+use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelEvents;
 
@@ -38,9 +38,9 @@ class LegacyExceptionListener implements EventSubscriberInterface
     /**
      * Handles the legacy exceptions.
      *
-     * @param \Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent $event
+    * @param \Symfony\Component\HttpKernel\Event\ExceptionEvent $event
      */
-    public function onException(GetResponseForExceptionEvent $event)
+    public function onException(ExceptionEvent $event)
     {
         if (!$this->isAdminSiteAccess) {
             return;
@@ -51,7 +51,7 @@ class LegacyExceptionListener implements EventSubscriberInterface
             return;
         }
 
-        $exception = $event->getException();
+        $exception = $event->getThrowable();
         if (!$exception instanceof NotFoundHttpException) {
             return;
         }
