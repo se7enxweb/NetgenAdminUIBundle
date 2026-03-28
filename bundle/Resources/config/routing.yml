@@ -38,30 +38,30 @@ _ezpublishSearchRoute:
 ezplatform.section.list:
     path: /sections/list
     defaults:
-        _controller: 'EzPlatformAdminUiBundle:Section:list'
+        _controller: 'EzSystems\EzPlatformAdminUiBundle\Controller\SectionController::listAction'
 
 ezplatform.section.view:
     path: /sections/view/{sectionId}
     defaults:
-        _controller: 'EzPlatformAdminUiBundle:Section:view'
+        _controller: 'EzSystems\EzPlatformAdminUiBundle\Controller\SectionController::viewAction'
 
 ezplatform.role.list:
     path: /roles/list
     methods: ['GET']
     defaults:
-        _controller: 'EzPlatformAdminUiBundle:Role:list'
+        _controller: 'EzSystems\EzPlatformAdminUiBundle\Controller\RoleController::listAction'
 
 ezplatform.object_state.groups.list:
     path: /state/groups/list
     defaults:
-        _controller: 'EzPlatformAdminUiBundle:ObjectStateGroup:list'
+        _controller: 'EzSystems\EzPlatformAdminUiBundle\Controller\ObjectStateGroupController::listAction'
 
 ezplatform.object_state.group.view:
     path: /state/groups/{objectStateGroupId}
     defaults:
-        _controller: 'EzPlatformAdminUiBundle:ObjectStateGroup:view'
+        _controller: 'EzSystems\EzPlatformAdminUiBundle\Controller\ObjectStateGroupController::viewAction'
 
 ezplatform.object_state.group.add:
     path: /state/groups/create
     defaults:
-        _controller: 'EzPlatformAdminUiBundle:ObjectStateGroup:add'
+        _controller: 'EzSystems\EzPlatformAdminUiBundle\Controller\ObjectStateGroupController::addAction'

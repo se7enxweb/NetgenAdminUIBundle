@@ -40,7 +40,7 @@
     <div id="page" class="{{ navigation_part }} section_id_{{ section_id }} {% if content_edit or ui_context_edit %} content-edit{% endif %}{% if not show_side_menu %} hide-side-menu{% endif %}">
         <header id="header">
             <div class="header-nav">
-                <a id="header-logo" class="logo-type-{{ netgen_admin_ui.logoType }}" href="{{ path( ezpublish.rootLocation ) }}" title="{{ 'netgen_admin_ui.title'|trans }}"></a>
+                <a id="header-logo" class="logo-type-{{ netgen_admin_ui.logoType }}" href="{{ ez_path( ezpublish.rootLocation ) }}" title="{{ 'netgen_admin_ui.title'|trans }}"></a>
             </div>
 
             {% if current_menu_plugin != false and menu_plugins[current_menu_plugin].templates.top is defined %}
@@ -60,7 +60,7 @@
                             <ul class="nav">
                                 {% for menu_plugin_identifier, menu_plugin in menu_plugins %}
                                     {% if menu_plugin.active and menu_plugin.templates.aside is defined %}
-                                        {% include menu_plugin.templates.aside ignore missing with {
+                                        {% include menu_plugin.templates.aside with {
                                             plugin: menu_plugin,
                                             active: menu_plugin.identifier == current_menu_plugin
                                         } %}
