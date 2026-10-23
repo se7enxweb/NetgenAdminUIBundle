@@ -38,11 +38,20 @@ var YUILoader = new YAHOO.util.YUILoader(YUI2_config);
 <script type="text/javascript" src="/design/admin/javascript/ezajaxuploader.js"></script>
 <script type="text/javascript" src="/design/admin/javascript/ezajaxsubitems_datatable.js"></script>
 
-{# jQuery first, then all scripts that depend on it #}
+{# jQuery first, then all scripts that depend on it.
+   jQuery.ez, the ezjscore AJAX helper (ezjsc::jqueryio), is not a static file: the legacy
+   page_head_script.tpl included before this template generates it with this siteaccess's URL
+   and attaches it to the jQuery it loads. Loading the bundle's jQuery replaces window.jQuery,
+   so keep the helper and attach it to the new jQuery as well. #}
+<script type="text/javascript">
+var ngAdminUiJqueryEz = window.jQuery ? { ez: window.jQuery.ez, fnEz: window.jQuery.fn.ez } : {};
+</script>
 <script type="text/javascript" src="{{ asset('bundles/netgenadminui/bower/jquery/dist/jquery.min.js') }}"></script>
+<script type="text/javascript">
+if (ngAdminUiJqueryEz.ez) { jQuery.ez = ngAdminUiJqueryEz.ez; }
+if (ngAdminUiJqueryEz.fnEz) { jQuery.fn.ez = ngAdminUiJqueryEz.fnEz; }
+</script>
 
-{# ezjsc::jqueryio — static jQuery.ez AJAX helper (mirrors PHP-generated version) #}
-<script type="text/javascript" src="/extension/ezjscore/design/standard/javascript/jquery.ez.js"></script>
 {# ezjsc::jqueryUI #}
 <script type="text/javascript" src="/extension/ezjscore/design/standard/javascript/jquery-ui-1.10.3.custom.min.js"></script>
 
