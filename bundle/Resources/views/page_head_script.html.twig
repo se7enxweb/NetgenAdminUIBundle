@@ -1,4 +1,13 @@
-<script type="text/javascript" src="{{ asset('bundles/netgenadminui/bower/jquery/dist/jquery.js') }}"></script>
+{#
+    The admin pages include the legacy page head first (design:page_head_script.tpl), which loads
+    the legacy kernel's jQuery and the jQuery plugins of the legacy extensions (eztags, ezoe ...).
+    Loading the bundle's own jQuery after it replaced window.jQuery with an instance that has none
+    of those plugins. The bundle's copy is therefore only loaded when the page has no jQuery yet
+    (the login page, which has no legacy head).
+#}
+<script type="text/javascript">
+window.jQuery || document.write('<script type="text/javascript" src="{{ asset('bundles/netgenadminui/bower/jquery/dist/jquery.js')|e('js') }}"><\/script>');
+</script>
 
 <!-- Initialize legacy globals that inline page code uses -->
 <script type="text/javascript">
@@ -63,8 +72,11 @@ window.treeMenu.closeNode = function(nodeId) {
 };
 </script>
 <!-- Legacy ezjscore support for admin interface -->
-<!-- YUI 3.17.2 library -->
-<script type="text/javascript" src="/extension/ezjscore/design/standard/lib/yui/3.17.2/build/yui/yui.js"></script>
+<!-- YUI 3.17.2 library: the legacy page head may already have loaded YUI 3 with its node and event
+     modules; loading the seed again would replace YUI and lose them (Y.one is not a function). -->
+<script type="text/javascript">
+window.YUI || document.write('<script type="text/javascript" src="/extension/ezjscore/design/standard/lib/yui/3.17.2/build/yui/yui.js"><\/script>');
+</script>
 
 <!-- YUI 2.8.2 Library for legacy admin code (local) - load in correct dependency order -->
 <script type="text/javascript" src="/extension/ezjscore/design/standard/lib/yui/2.8.2/build/yahoo/yahoo-min.js"></script>
