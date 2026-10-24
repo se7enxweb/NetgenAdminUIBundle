@@ -86,8 +86,13 @@
 
 </div>
 
-{* Load yui code for subitems display even if current node has no children (since cache blocks does not vary by this) *}
-{ezscript_require( array('ezjsc::yui2', 'ezajaxsubitems_datatable.js') )}
+{* Load the sub-items table even if current node has no children (since cache blocks does not vary by this):
+   Exponential UI's exp::datatable where the legacy kernel has it instead of YUI, else the YUI 2 DataTable *}
+{switch match=ngadminui_js_library()}
+{case match='expui'}{ezscript_require( array( 'ezjsc::jquery', 'exp::core::shared', 'exp::io', 'exp::datatable', 'ngadminui_subitems_expdatatable.js' ) )}{/case}
+{case match='yui'}{ezscript_require( array('ezjsc::yui2', 'ezajaxsubitems_datatable.js') )}{/case}
+{case}{/case}
+{/switch}
 
 <!-- Children END -->
 

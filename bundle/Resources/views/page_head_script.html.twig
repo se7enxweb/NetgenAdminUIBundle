@@ -1,3 +1,20 @@
+{# The admin widgets (sub-items table, date pickers, relation upload, collapsible edit menus) run on what
+   the legacy kernel provides: Exponential UI (expui) on a kernel without YUI, YUI on a kernel that still
+   ships it. ngadmin_legacy_js_library() tells which: 'expui', 'yui' or 'none'. YUI and the scripts written
+   for it are only loaded in the 'yui' case, which keeps the page head of those kernels as it was.
+
+   On a kernel without YUI the legacy page head (design:page_head_script.tpl, included before this
+   template) already loads jQuery 4 with jQuery.ez, the exp:: modules and the scripts of the legacy
+   extensions (eztags ...) attached to it; the bundle's jQuery is then only loaded when the page has no
+   jQuery yet (the login page without a legacy head), so that none of them is lost. #}
+{% set ngadmin_js_library = ngadmin_legacy_js_library() %}
+{% if ngadmin_js_library == 'expui' %}
+{# Exponential UI's page configuration: the server call and preference addresses of this siteaccess, its locale
+   and texts (exp_config() in design:page_head_exp.tpl). A project's override of the legacy page head may leave
+   it out; the exp:: scripts merge a block that comes after them when the page is ready. #}
+{% include 'design:page_head_exp.tpl' %}
+{% endif %}
+{% if ngadmin_js_library == 'yui' %}
 {# YUI 3 (provides the YUI global) and YUI 2 (provides the YAHOO global),
    served from local ezjscore bundle files via the public/extension symlink. #}
 <script type="text/javascript" src="/extension/ezjscore/design/standard/lib/yui/3.17.2/build/yui/yui-min.js"></script>
@@ -29,10 +46,12 @@ var YUI3_config = {
 var YUI2_config = {base: '/extension/ezjscore/design/standard/lib/yui/2.8.2/build/', loadOptional: true};
 var YUILoader = new YAHOO.util.YUILoader(YUI2_config);
 </script>
+{% endif %}
 {# BackendJavaScriptList — non-jQuery scripts (safe before jQuery) #}
 <script type="text/javascript" src="/design/standard/javascript/tools/ezjsselection.js"></script>
 <script type="text/javascript" src="/design/standard/javascript/lib/ezjslibimagepreloader.js"></script>
 <script type="text/javascript" src="/design/admin/javascript/popupmenu/ezpopupmenu.js"></script>
+{% if ngadmin_js_library == 'yui' %}
 <script type="text/javascript" src="/design/admin/javascript/fixed_toolbar.js"></script>
 <script type="text/javascript" src="/design/admin/javascript/ezmodalwindow.js"></script>
 <script type="text/javascript" src="/design/admin/javascript/ezajaxuploader.js"></script>
@@ -54,11 +73,17 @@ if (ngAdminUiJqueryEz.fnEz) { jQuery.fn.ez = ngAdminUiJqueryEz.fnEz; }
 
 {# ezjsc::jqueryUI #}
 <script type="text/javascript" src="/extension/ezjscore/design/standard/javascript/jquery-ui-1.10.3.custom.min.js"></script>
+{% else %}
+<script type="text/javascript">
+window.jQuery || document.write('<script type="text/javascript" src="{{ asset('bundles/netgenadminui/bower/jquery/dist/jquery.min.js')|e('js') }}"><\/script>');
+</script>
+{% endif %}
 
 {# BackendJavaScriptList — jQuery-dependent admin scripts #}
 <script type="text/javascript" src="/design/admin/javascript/leftmenu_widthcontrol.js"></script>
 <script type="text/javascript" src="/design/admin/javascript/contentstructuremenu_dynamic.js"></script>
 
+{% if ngadmin_js_library == 'yui' %}
 {# BackendJavaScriptList — eztags extension scripts #}
 <script type="text/javascript" src="/extension/eztags/design/standard/javascript/jqmodal.js"></script>
 <script type="text/javascript" src="/extension/eztags/design/standard/javascript/jstree.min.js"></script>
@@ -68,13 +93,22 @@ if (ngAdminUiJqueryEz.fnEz) { jQuery.fn.ez = ngAdminUiJqueryEz.fnEz; }
 <script type="text/javascript" src="/extension/eztags/design/standard/javascript/tagsstructuremenu.js"></script>
 <script type="text/javascript" src="/extension/eztags/design/admin2/javascript/jquery.eztagschildren.js"></script>
 <script type="text/javascript" src="/extension/ezclasslists/design/standard/javascript/classlists.js"></script>
+{% endif %}
 
 {# Admin tab switching and AJAX relations — depend on jQuery + $.ez #}
 <script type="text/javascript" src="/design/admin/javascript/node_tabs.js"></script>
 <script type="text/javascript" src="/design/admin/javascript/ezajaxrelations_jquery.js"></script>
 
 {# NetgenAdminUI bundle assets #}
+{% if ngadmin_js_library == 'yui' %}
 <script type="text/javascript" src="{{ asset('bundles/netgenadminui/js/resizable.js') }}"></script>
+{% else %}
+{# The bundle's jQuery UI 1.11 resizable only where the page has no resizable yet: mixed with the jQuery UI 1.14
+   of the legacy page head (ezjsc::jqueryUI) its widgets fail ("this._addClass is not a function"). #}
+<script type="text/javascript">
+(window.jQuery && jQuery.ui && jQuery.ui.resizable) || document.write('<script type="text/javascript" src="{{ asset('bundles/netgenadminui/js/resizable.js')|e('js') }}"><\/script>');
+</script>
+{% endif %}
 <script type="text/javascript" src="{{ asset('bundles/netgenadminui/bower/bootstrap-sass/assets/javascripts/bootstrap.js') }}"></script>
 <script type="text/javascript" src="{{ asset('bundles/netgenadminui/bower/ace-builds/src-min-noconflict/ace.js') }}"></script>
 <script type="text/javascript" src="{{ asset('bundles/netgenadminui/bower/ace-builds/src-min-noconflict/ext-language_tools.js') }}"></script>

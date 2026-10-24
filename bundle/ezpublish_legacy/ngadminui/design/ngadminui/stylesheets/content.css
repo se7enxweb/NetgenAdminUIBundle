@@ -273,3 +273,24 @@ fieldset.ezcca-collapsible.ezcca-collapsed legend a
     background: none;
     padding: 0 10px;
 }
+
+/* Rules the templates used to set in style="" attributes */
+.datepicker-icon {
+    cursor: pointer;
+}
+.ngadminui-datepicker-container {
+    display: none;
+    position: absolute;
+}
+img.ngadminui-flag {
+    vertical-align: middle;
+}
+form.ngadminui-tagadd {
+    float: left;
+}
+div.rightmenu.ngadminui-edit-menu-collapsed {
+    margin-right: -222px;
+}
+#maincontent.node-edit-container.ngadminui-edit-menu-collapsed {
+    margin-right: 18px;
+}

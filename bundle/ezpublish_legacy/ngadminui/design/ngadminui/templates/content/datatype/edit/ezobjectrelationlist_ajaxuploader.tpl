@@ -11,8 +11,88 @@
             title="{'Upload a file to create a new object and add it to the relation'|i18n( 'design/admin/content/datatype' )}" />
 
     {run-once}
+    {def $ngadminui_js = ngadminui_js_library()}
+    {if eq( $ngadminui_js, 'expui' )}
+    {* The upload dialog on Exponential UI (exp::dialog, exp::upload) and jQuery: expajaxuploader.js of the legacy kernel *}
+    {ezscript_require( array( 'ezjsc::jquery', 'exp::core::shared', 'exp::io', 'exp::dialog', 'exp::upload', 'expajaxuploader.js' ) )}
+    {ezcss_require( array( 'exp/core.css', 'exp/dialog.css', 'exp/upload.css' ) )}
+    <script type="text/javascript">
+    {literal}
+    (function () {
+        if (!window.Exp || !window.Exp.ready) { return; }
+        Exp.ready(function ($) {
+            if (!$.fn.expAjaxUploader) { return; }
+            $('.relation-upload-new').expAjaxUploader({
+                open: {
+                    action: 'ezajaxuploader::uploadform::ezobjectrelationlist'
+                },
+                upload: {
+                    action: 'ezajaxuploader::upload::ezobjectrelationlist?ContentType=html',
+                    form: 'form.ajaxuploader-upload'
+                },
+                location: {
+                    action: 'ezajaxuploader::preview::ezobjectrelationlist',
+                    form: 'form.ajaxuploader-location',
+                    browse: 'div.ajaxuploader-browse',
+        {/literal}
+                    required: "{'Please choose a location'|i18n( 'design/admin/content/datatype' )|wash( 'javascript' )}"
+        {literal}
+                },
+                preview: {
+                    form: 'form.ajaxuploader-preview',
+
+                    // this is the uploader: the object just created is added to the relation list
+                    callback: function () {
+                        var box = $('#ezobjectrelationlist_browse_' + this.conf.target.ObjectRelationsAttributeId),
+                            table = box.find('table.list').first(),
+                            tbody = table.find('tbody').first(),
+                            last = tbody.children().last(),
+                            tr, tds, priority,
+                            result = this.lastMetaData;
+
+                        if ( !table.hasClass('hide') ) {
+                            // table is visible, clone the last line
+                            tr = last.clone();
+                            tbody.append(tr);
+                            if ( last.hasClass('bgdark') ) {
+                                tr.removeClass('bgdark').addClass('bglight');
+                            } else {
+                                tr.removeClass('bglight').addClass('bgdark');
+                            }
+                        } else {
+                            // table is hidden, no related object yet
+                            // the only line in the table is the "template line"
+                            tr = last;
+                            table.removeClass('hide');
+                        }
+                        tds = tr.children();
+                        tds.eq(0).find('input').val(result.object_info.id);
+                        tds.eq(1).text(result.object_info.name);
+                        tds.eq(2).text(result.object_info.class_name);
+                        tds.eq(3).text(result.object_info.section_name);
+                        tds.eq(4).text(result.object_info.published);
+                        priority = tds.eq(5).find('input').first();
+                        priority.val(parseInt(priority.val(), 10) + 1);
+
+                        box.find('.ezobject-relation-remove-button').first().removeClass('button-disabled').addClass('button').prop('disabled', false);
+                        box.find('.ezobject-relation-no-relation').addClass('hide');
+
+                        this.close();
+                    }
+                },
+        {/literal}
+                validationErrorText: "{'Some required fields are empty.'|i18n( 'design/admin/content/datatype' )|wash( 'javascript' )}",
+                parseJSONErrorText: "{'Unable to parse the JSON response.'|i18n( 'design/admin/content/datatype' )|wash( 'javascript' )}",
+                title: "{'Upload a file and add the resulting object in the relation'|i18n( 'design/admin/content/datatype' )|wash( 'javascript' )}"
+        {literal}
+            });
+        });
+    })();
+    {/literal}
+    </script>
+    {elseif eq( $ngadminui_js, 'yui' )}
     {ezscript_require( array( 'ezjsc::yui3', 'ezjsc::yui3io', 'ezmodalwindow.js', 'ezajaxuploader.js' ) )}
-    <div id="relationlist-modal-window" class="modal-window" style="display:none;">
+    <div id="relationlist-modal-window" class="modal-window" hidden="hidden">
         <h2><a href="#" class="window-close">{'Close'|i18n( 'design/admin/pagelayout' )}</a><span></span></h2>
         <div class="window-content"></div>
     </div>
@@ -129,6 +209,8 @@
     })();
     {/literal}
     </script>
+    {/if}
+    {undef $ngadminui_js}
     {/run-once}
 {/if}
 {undef $merge_count $merge_unique_count $allowed_class_list $uploadable_classes}
