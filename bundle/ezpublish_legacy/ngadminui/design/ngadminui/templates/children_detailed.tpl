@@ -197,6 +197,12 @@ var labelsObj = {ldelim}
 {/if}
 
 {literal}
+// Exponential UI's table (exp::datatable, ngadminui_subitems_expdatatable.js) when the legacy kernel has it; else the YUI 2 one
+if ( window.Exp && Exp.$ && Exp.$.fn.expDataTable && window.ngAdminUiSubitemsExpDataTable ) {
+    Exp.ready( function() {
+        ngAdminUiSubitemsExpDataTable.init(confObj, labelsObj, createGroups, createOptions);
+    } );
+} else if ( window.YUILoader ) {
 YUILoader.require(['datatable', 'button', 'container', 'cookie', 'element']);
 YUILoader.onSuccess = function() {
     sortableSubitems.init(confObj, labelsObj, createGroups, createOptions);
@@ -229,6 +235,7 @@ YUILoader.onSuccess = function() {
 };
 var options = [];
 YUILoader.insert(options, 'js');
+}
 
 })();
 {/literal}
