@@ -21,7 +21,7 @@
             <div class="controlbar">
                 <div class="button-left">
                     <div class="block">
-                        <form name="tagadd" id="tagadd" style="float:left;" enctype="multipart/form-data" method="post" action={'tags/add/0'|ezurl}>
+                        <form name="tagadd" id="tagadd" class="ngadminui-tagadd" enctype="multipart/form-data" method="post" action={'tags/add/0'|ezurl}>
                             <input class="btn btn-primary" type="submit" name="SubmitButton" value="{"Add child tag"|i18n( "extension/eztags/tags/view" )}" />
                         </form>
                     </div>
@@ -33,6 +33,10 @@
     <div class="box-content panel">
         {if $show_legacy_children_list}
             {include uri='design:eztags_children.tpl'}
+        {elseif and( ngadminui_has_template( 'eztags_children_table.tpl' ),
+                     or( ngadminui_js_library()|ne( 'yui' ), ngadminui_has_template( 'eztags_children_yui.tpl' )|not ) )}
+            {* eZ Tags 2.4.9 and later: the children table on Exponential UI (eztags_children_yui.tpl renamed) *}
+            {include uri='design:eztags_children_table.tpl'}
         {else}
             {include uri='design:eztags_children_yui.tpl'}
         {/if}
