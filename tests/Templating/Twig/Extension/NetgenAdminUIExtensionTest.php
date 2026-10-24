@@ -88,4 +88,15 @@ class NetgenAdminUIExtensionTest extends TestCase
 
         $this->assertEquals($name, $this->extension->getLegacyPreference($name));
     }
+
+    public function testGetLegacyJavaScriptLibraryAsksTheLegacyKernelOnce()
+    {
+        $this->mockedKernel
+            ->expects($this->once())
+            ->method('runCallback')
+            ->willReturn('expui');
+
+        $this->assertEquals('expui', $this->extension->getLegacyJavaScriptLibrary());
+        $this->assertEquals('expui', $this->extension->getLegacyJavaScriptLibrary());
+    }
 }

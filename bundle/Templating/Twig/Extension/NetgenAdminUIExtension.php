@@ -3,6 +3,7 @@
 namespace Netgen\Bundle\AdminUIBundle\Templating\Twig\Extension;
 
 use Closure;
+use eZExtension;
 use eZPreferences;
 use Netgen\Bundle\AdminUIBundle\Helper\PathHelper;
 use Twig_Extension;
@@ -19,6 +20,11 @@ class NetgenAdminUIExtension extends Twig_Extension
      * @var \Closure
      */
     protected $legacyKernel;
+
+    /**
+     * @var string|null
+     */
+    protected $legacyJavaScriptLibrary;
 
     /**
      * Constructor.
@@ -59,6 +65,10 @@ class NetgenAdminUIExtension extends Twig_Extension
                 'ngadmin_ezpreference',
                 array($this, 'getLegacyPreference')
             ),
+            new Twig_SimpleFunction(
+                'ngadmin_legacy_js_library',
+                array($this, 'getLegacyJavaScriptLibrary')
+            ),
         );
     }
 
@@ -90,5 +100,36 @@ class NetgenAdminUIExtension extends Twig_Extension
                 return eZPreferences::value($name);
             }
         );
+    }
+
+    /**
+     * Returns the JavaScript library the legacy kernel provides for the admin widgets:
+     * 'yui' when ezjscore still provides YUI (ezjsc::yui2), 'expui' when it does not and
+     * Exponential UI (extension expui) is active, 'none' otherwise.
+     *
+     * The legacy templates of the ngadminui extension decide the same way
+     * (ngadminui_js_library() template operator).
+     *
+     * @return string
+     */
+    public function getLegacyJavaScriptLibrary()
+    {
+        if ($this->legacyJavaScriptLibrary !== null) {
+            return $this->legacyJavaScriptLibrary;
+        }
+
+        $legacyKernel = $this->legacyKernel;
+
+        $this->legacyJavaScriptLibrary = $legacyKernel()->runCallback(
+            function () {
+                if (class_exists('ezjscServerFunctionsJs') && method_exists('ezjscServerFunctionsJs', 'yui2')) {
+                    return 'yui';
+                }
+
+                return in_array('expui', eZExtension::activeExtensions(), true) ? 'expui' : 'none';
+            }
+        );
+
+        return $this->legacyJavaScriptLibrary;
     }
 }
